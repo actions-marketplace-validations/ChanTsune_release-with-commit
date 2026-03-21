@@ -1,246 +1,6 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 6472:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Config = void 0;
-const releaseInfo_1 = __nccwpck_require__(4925);
-const fs = __importStar(__nccwpck_require__(9896));
-class Config {
-    regexp;
-    release_name;
-    tag_name;
-    body;
-    body_path;
-    draft;
-    prerelease;
-    commitish;
-    repo;
-    owner;
-    constructor(regexp, release_name, tag_name, body, body_path, draft, prerelease, commitish, repo, owner) {
-        this.regexp = regexp;
-        this.release_name = release_name;
-        this.tag_name = tag_name;
-        this.body = body;
-        this.body_path = body_path;
-        this.draft = draft;
-        this.prerelease = prerelease;
-        this.commitish = commitish;
-        this.repo = repo;
-        this.owner = owner;
-    }
-    render(m, t) {
-        return m.replace(this.regexp, t);
-    }
-    exec(commitMessage) {
-        if (this.regexp.test(commitMessage)) {
-            let fileContent;
-            const path = this.render(commitMessage, this.body_path);
-            if (path !== "" && !!path) {
-                fileContent = fs.readFileSync(this.body_path, { encoding: "utf8" });
-            }
-            return new releaseInfo_1.ReleaseInfo(this.render(commitMessage, this.release_name) || commitMessage, this.render(commitMessage, this.tag_name) || commitMessage, fileContent || this.render(commitMessage, this.body) || commitMessage, this.draft, this.prerelease);
-        }
-        return null;
-    }
-    static parse(param) {
-        return new Config(new RegExp(param.regexp, param.regexp_options), param.release_name, param.tag_name, param.body, param.body_path, param.draft, param.prerelease, param.commitish, param.repo, param.owner);
-    }
-}
-exports.Config = Config;
-
-
-/***/ }),
-
-/***/ 1188:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.main = main;
-const core = __importStar(__nccwpck_require__(7484));
-const github_1 = __nccwpck_require__(3228);
-const config_1 = __nccwpck_require__(6472);
-async function main(github, config, callback, failure) {
-    try {
-        core.startGroup("Checking the commit messages");
-        const commits = github_1.context.payload.commits;
-        if (commits.length === 0) {
-            core.info("No commits detected!");
-            callback(-1, "", "", false, null);
-            return;
-        }
-        const headCommit = commits[0];
-        core.info(JSON.stringify(headCommit));
-        core.info(headCommit.message);
-        const releaseInfo = config.exec(headCommit.message);
-        if (!releaseInfo) {
-            core.info("Commit message does not matched.");
-            callback(-1, "", "", false, null);
-            return;
-        }
-        core.endGroup();
-        const createReleaseResponse = await core.group("Create release", async () => {
-            // Create a release
-            // API Documentation: https://developer.github.com/v3/repos/releases/#create-a-release
-            // Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-create-release
-            return await github.rest.repos.createRelease({
-                owner: config.owner,
-                repo: config.repo,
-                tag_name: releaseInfo.tag_name,
-                name: releaseInfo.name,
-                body: releaseInfo.body,
-                draft: releaseInfo.draft,
-                prerelease: releaseInfo.prerelease,
-                target_commitish: config.commitish,
-            });
-        });
-        // Get the ID, html_url, and upload URL for the created Release from the response
-        const { data: { id: releaseId, html_url: htmlUrl, upload_url: uploadUrl }, } = createReleaseResponse;
-        callback(releaseId, htmlUrl, uploadUrl, true, releaseInfo);
-    }
-    catch (error) {
-        core.error(error);
-        failure(error);
-    }
-}
-async function run() {
-    const env = process.env;
-    const githubToken = env.GITHUB_TOKEN;
-    if (!githubToken) {
-        core.setFailed("GITHUB_TOKEN is not defined.");
-        return;
-    }
-    // Get authenticated GitHub client (Ocktokit): https://github.com/actions/toolkit/tree/master/packages/github#usage
-    const github = (0, github_1.getOctokit)(githubToken);
-    const { owner, repo } = github_1.context.repo;
-    // Get the inputs from the workflow file: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
-    const config = config_1.Config.parse({
-        regexp: core.getInput("regexp", { required: true }),
-        regexp_options: core.getInput("regexp_options", { required: false }),
-        release_name: core.getInput("release_name", { required: false }),
-        tag_name: core.getInput("tag_name", { required: false }),
-        body: core.getInput("body", { required: false }),
-        body_path: core.getInput("body_path", { required: false }),
-        draft: core.getBooleanInput("draft", { required: false }),
-        prerelease: core.getBooleanInput("prerelease", { required: false }),
-        commitish: core.getInput("commitish", { required: false }) || github_1.context.sha,
-        repo: repo,
-        owner: owner,
-    });
-    await main(github, config, (releaseId, htmlUrl, uploadUrl, created, releaseInfo) => {
-        // Set the output variables for use by other actions: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
-        core.setOutput("id", releaseId);
-        core.setOutput("html_url", htmlUrl);
-        core.setOutput("upload_url", uploadUrl);
-        core.setOutput("created", created);
-        core.setOutput("tag_name", releaseInfo?.tag_name);
-    }, (error) => {
-        core.setFailed(error);
-    });
-}
-run();
-
-
-/***/ }),
-
-/***/ 4925:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ReleaseInfo = void 0;
-class ReleaseInfo {
-    name;
-    tag_name;
-    body;
-    draft;
-    prerelease;
-    constructor(name, tag_name, body, draft, prerelease) {
-        this.name = name;
-        this.tag_name = tag_name;
-        this.body = body;
-        this.draft = draft;
-        this.prerelease = prerelease;
-    }
-}
-exports.ReleaseInfo = ReleaseInfo;
-
-
-/***/ }),
-
 /***/ 4914:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -31850,18 +31610,205 @@ module.exports = require("zlib");
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(1188);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+// ESM COMPAT FLAG
+__nccwpck_require__.r(__webpack_exports__);
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  main: () => (/* binding */ main)
+});
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var lib_github = __nccwpck_require__(3228);
+;// CONCATENATED MODULE: ./lib/releaseInfo.js
+class ReleaseInfo {
+    name;
+    tag_name;
+    body;
+    draft;
+    prerelease;
+    constructor(name, tag_name, body, draft, prerelease) {
+        this.name = name;
+        this.tag_name = tag_name;
+        this.body = body;
+        this.draft = draft;
+        this.prerelease = prerelease;
+    }
+}
+
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(9896);
+;// CONCATENATED MODULE: ./lib/config.js
+
+
+class Config {
+    regexp;
+    release_name;
+    tag_name;
+    body;
+    body_path;
+    draft;
+    prerelease;
+    commitish;
+    repo;
+    owner;
+    constructor(regexp, release_name, tag_name, body, body_path, draft, prerelease, commitish, repo, owner) {
+        this.regexp = regexp;
+        this.release_name = release_name;
+        this.tag_name = tag_name;
+        this.body = body;
+        this.body_path = body_path;
+        this.draft = draft;
+        this.prerelease = prerelease;
+        this.commitish = commitish;
+        this.repo = repo;
+        this.owner = owner;
+    }
+    render(m, t) {
+        return m.replace(this.regexp, t);
+    }
+    exec(commitMessage) {
+        if (this.regexp.test(commitMessage)) {
+            let fileContent;
+            const path = this.render(commitMessage, this.body_path);
+            if (path !== "" && !!path) {
+                fileContent = external_fs_.readFileSync(this.body_path, { encoding: "utf8" });
+            }
+            return new ReleaseInfo(this.render(commitMessage, this.release_name) || commitMessage, this.render(commitMessage, this.tag_name) || commitMessage, fileContent || this.render(commitMessage, this.body) || commitMessage, this.draft, this.prerelease);
+        }
+        return null;
+    }
+    static parse(param) {
+        return new Config(new RegExp(param.regexp, param.regexp_options), param.release_name, param.tag_name, param.body, param.body_path, param.draft, param.prerelease, param.commitish, param.repo, param.owner);
+    }
+}
+
+;// CONCATENATED MODULE: ./lib/index.js
+
+
+
+async function main(github, config, callback, failure) {
+    try {
+        core.startGroup("Checking the commit messages");
+        const commits = lib_github.context.payload.commits;
+        if (commits.length === 0) {
+            core.info("No commits detected!");
+            callback(-1, "", "", false, null);
+            return;
+        }
+        const headCommit = commits[0];
+        core.info(JSON.stringify(headCommit));
+        core.info(headCommit.message);
+        const releaseInfo = config.exec(headCommit.message);
+        if (!releaseInfo) {
+            core.info("Commit message does not matched.");
+            callback(-1, "", "", false, null);
+            return;
+        }
+        core.endGroup();
+        const createReleaseResponse = await core.group("Create release", async () => {
+            // Create a release
+            // API Documentation: https://developer.github.com/v3/repos/releases/#create-a-release
+            // Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-create-release
+            return await github.rest.repos.createRelease({
+                owner: config.owner,
+                repo: config.repo,
+                tag_name: releaseInfo.tag_name,
+                name: releaseInfo.name,
+                body: releaseInfo.body,
+                draft: releaseInfo.draft,
+                prerelease: releaseInfo.prerelease,
+                target_commitish: config.commitish,
+            });
+        });
+        // Get the ID, html_url, and upload URL for the created Release from the response
+        const { data: { id: releaseId, html_url: htmlUrl, upload_url: uploadUrl }, } = createReleaseResponse;
+        callback(releaseId, htmlUrl, uploadUrl, true, releaseInfo);
+    }
+    catch (error) {
+        core.error(error);
+        failure(error);
+    }
+}
+async function run() {
+    const env = process.env;
+    const githubToken = env.GITHUB_TOKEN;
+    if (!githubToken) {
+        core.setFailed("GITHUB_TOKEN is not defined.");
+        return;
+    }
+    // Get authenticated GitHub client (Ocktokit): https://github.com/actions/toolkit/tree/master/packages/github#usage
+    const github = (0,lib_github.getOctokit)(githubToken);
+    const { owner, repo } = lib_github.context.repo;
+    // Get the inputs from the workflow file: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
+    const config = Config.parse({
+        regexp: core.getInput("regexp", { required: true }),
+        regexp_options: core.getInput("regexp_options", { required: false }),
+        release_name: core.getInput("release_name", { required: false }),
+        tag_name: core.getInput("tag_name", { required: false }),
+        body: core.getInput("body", { required: false }),
+        body_path: core.getInput("body_path", { required: false }),
+        draft: core.getBooleanInput("draft", { required: false }),
+        prerelease: core.getBooleanInput("prerelease", { required: false }),
+        commitish: core.getInput("commitish", { required: false }) || lib_github.context.sha,
+        repo: repo,
+        owner: owner,
+    });
+    await main(github, config, (releaseId, htmlUrl, uploadUrl, created, releaseInfo) => {
+        // Set the output variables for use by other actions: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
+        core.setOutput("id", releaseId);
+        core.setOutput("html_url", htmlUrl);
+        core.setOutput("upload_url", uploadUrl);
+        core.setOutput("created", created);
+        core.setOutput("tag_name", releaseInfo?.tag_name);
+    }, (error) => {
+        core.setFailed(error);
+    });
+}
+run();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;
 //# sourceMappingURL=index.js.map
